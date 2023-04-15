@@ -1,0 +1,94 @@
+import os
+
+_base_ = './mmclassification/configs/efficientnet/efficientnet-b4_8xb32_in1k.py'
+
+# model
+model = dict(
+    head=dict(
+        num_classes=4,
+        topk=(1, )) 
+)
+
+# pipeline, refer to https://github.com/open-mmlab/mmclassification/blob/master/mmcls/datasets/pipelines/transforms.py
+img_norm_cfg = dict(
+    mean=[127.5, 127.5, 127.5], std=[127.5, 127.5, 127.5], to_rgb=True)
+train_pipeline = [
+    dict(type='LoadImageFromFile'),
+    
+    dict(
+        type='RandomResizedCrop',
+        size=380,
+        efficientnet_style=True,
+        interpolation='bicubic'),
+    dict(type='RandomFlip', flip_prob=0.5, direction='horizontal'),
+    # dict(type='ColorJitter', brightness=0.5, contrast=0.5, saturation=0.5),
+    dict(type='AutoContrast', prob=0.8),     
+    dict(type='Normalize', **img_norm_cfg),
+    dict(type='ImageToTensor', keys=['img']),
+    dict(type='ToTensor', keys=['gt_label']),
+    dict(type='Collect', keys=['img', 'gt_label'])
+]
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(
+        type='CenterCrop',
+        crop_size=380,
+        efficientnet_style=True,
+        interpolation='bicubic'),
+    dict(type='AutoContrast', prob=0.8),     
+    dict(type='Normalize', **img_norm_cfg),
+    dict(type='ImageToTensor', keys=['img']),
+    dict(type='Collect', keys=['img'])
+]
+
+# dataset
+data_root = 'D:/Code/Hip_v4'
+inner_anno = data_root
+outer_anno = data_root
+dataset_type = 'CustomDataset'
+classes = ['>9', '6-9', '3-6', '0-3']
+data = dict(
+    samples_per_gpu=16,
+    train=dict(
+        type=dataset_type,
+        data_prefix=os.path.join(data_root, 'data'),
+        ann_file=os.path.join(inner_anno, 'inner_train.txt'),
+        classes=classes,
+        pipeline=train_pipeline
+    ),
+    val=dict(
+        type=dataset_type,
+        data_prefix=os.path.join(data_root, 'data'),
+        ann_file=os.path.join(inner_anno, 'inner_test.txt'),
+        classes=classes,
+        pipeline=test_pipeline
+    ),
+    test=dict(
+        type=dataset_type,
+        data_prefix=os.path.join(data_root, 'data'),
+        ann_file=os.path.join(outer_anno, 'outer_test.txt'),
+        classes=classes,
+        pipeline=test_pipeline
+    )
+)
+
+# evaluation
+evaluation = dict(interval=1, save_best='auto', metric='accuracy', metric_options={'topk': (1, )})
+
+# learning schedule
+optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0001)  
+runner = dict(type='EpochBasedRunner', max_epochs=200)    # 200 epochs
+# Checkpoint hook config
+checkpoint_config = dict(
+    interval=1,
+    max_keep_ckpts=15
+)
+
+# log config
+log_config = dict(
+    interval=10,
+    hooks=[dict(type='TensorboardLoggerHook'),    # use tensorboard and txt log
+           dict(type='TextLoggerHook')])
+
+# use pretrained model
+load_from = './mmclassification/checkpoints/efficientnet-b4_3rdparty_8xb32-aa-advprop_in1k_20220119-38c2238c.pth'
