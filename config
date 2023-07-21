@@ -42,31 +42,30 @@ test_pipeline = [
 ]
 
 # dataset
-data_root = 'D:/Code/Hip_v4'
-inner_anno = data_root
-outer_anno = data_root
+data_root = ''
+anno = ''
 dataset_type = 'CustomDataset'
-classes = ['>9', '6-9', '3-6', '0-3']
+classes = ['0', '1', '2', '3']
 data = dict(
     samples_per_gpu=16,
     train=dict(
         type=dataset_type,
         data_prefix=os.path.join(data_root, 'data'),
-        ann_file=os.path.join(inner_anno, 'inner_train.txt'),
+        ann_file=os.path.join(anno, 'train.txt'),
         classes=classes,
         pipeline=train_pipeline
     ),
     val=dict(
         type=dataset_type,
         data_prefix=os.path.join(data_root, 'data'),
-        ann_file=os.path.join(inner_anno, 'inner_test.txt'),
+        ann_file=os.path.join(anno, 'val.txt'),
         classes=classes,
         pipeline=test_pipeline
     ),
     test=dict(
         type=dataset_type,
         data_prefix=os.path.join(data_root, 'data'),
-        ann_file=os.path.join(outer_anno, 'outer_test.txt'),
+        ann_file=os.path.join(anno, 'test.txt'),
         classes=classes,
         pipeline=test_pipeline
     )
@@ -91,4 +90,4 @@ log_config = dict(
            dict(type='TextLoggerHook')])
 
 # use pretrained model
-load_from = './mmclassification/checkpoints/efficientnet-b4_3rdparty_8xb32-aa-advprop_in1k_20220119-38c2238c.pth'
+load_from = ''
