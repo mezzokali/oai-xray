@@ -1,5 +1,3 @@
-# python mmdetection/tools/train.py mmdetection/configs/hip/hip.py
-
 _base_ = '../mmdetection/configs/retinanet/retinanet_r50_fpn_2x_coco.py'
 
 # model
@@ -8,8 +6,8 @@ model = dict(
 
 # dataset
 dataset_type = 'CocoDataset'
-classes = ('left', 'right', )
-data_root = 'D:/Code/Hip_v2/coco/'
+classes = ('0', '1', )
+data_root = ''
 
 
 # preprocess
@@ -75,4 +73,4 @@ log_config = dict(
     hooks=[dict(type='TensorboardLoggerHook')])    # use tensorboard log
 
 # pre-trained model
-load_from = 'D:/Code/Hip_v2/mmdetection/checkpoints/retinanet_r50_fpn_2x_coco_20200131-fdb43119.pth'
+load_from = ''
